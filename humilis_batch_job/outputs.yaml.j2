@@ -5,6 +5,7 @@ outputs:
             The ARN of the job definition
         Value: {Ref: JobDefinition}
 
+    {% if schedule_expression %}
     LambdaFunctionArn:
         Description:
             The ARN of the Lambda function triggering the job on a schedule
@@ -19,6 +20,7 @@ outputs:
             "Fn::GetAtt":
                 - LambdaExecutionRole
                 - Arn
+    {% endif %}
 
     ContainerRoleArn:
         Description: The ARN of the IAM role associated to the container

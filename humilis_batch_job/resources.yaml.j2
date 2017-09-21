@@ -1,26 +1,53 @@
 ---
 resources:
-    # The lambda function
+    {% if schedule_expression %}
     LambdaFunction:
       Type: "AWS::Lambda::Function"
       Properties:
         FunctionName: "{{__context.environment.name}}-{{__context.layer.name}}-{{__context.stage}}"
         Code:
-            "ZipFile":
+            ZipFile:
                 "Fn::Join":
                     - ""
                     -
                         - "import json\n"
+                        - "import boto3\n"
                         - "def handler(event, context): \n"
-                        - "    return None\n"
+                        - "    client = boto3.client('batch')\n"
+                        - "    return client.submit_job(\n"
+                        - "        jobName='"
+                        - "{{__context.environment.name}}-{{__context.layer.name}}-{{__context.stage}}-{{''|timestamp|int}}"
+                        - "',\n"
+                        - "        jobQueue='{{job_queue}}',\n"
+                        - "        jobDefinition='"
+                        - {Ref: JobDefinition}
+                        - "')\n"
         Runtime: "python3.6"
         MemorySize: "128"
         Description: "Lambda trigger for Batch job {{description or __context.environment.name + "-" + __context.layer.name + "-" + __context.stage}}"
-        Handler: "handler"
+        Handler: "index.handler"
         Role:
           "Fn::GetAtt":
               - LambdaExecutionRole
               - Arn
+
+    ScheduledRule:
+      Type: "AWS::Events::Rule"
+      Properties:
+        Description: "ScheduledRule"
+        ScheduleExpression: "{{schedule_expression}}"
+        State: "ENABLED"
+        Targets:
+            - "Arn": { "Fn::GetAtt": ["LambdaFunction", "Arn"] }
+              "Id": "BatchJobTrigger"
+
+    PermissionForEventsToInvokeLambda:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        FunctionName: { "Ref": "LambdaFunction" }
+        Action: "lambda:InvokeFunction"
+        Principal: "events.amazonaws.com"
+        SourceArn: { "Fn::GetAtt": ["ScheduledRule", "Arn"] }
 
     LambdaExecutionRole:
         Type: "AWS::IAM::Role"
@@ -33,7 +60,7 @@ resources:
               Principal: {"Service": "lambda.amazonaws.com"}
               Action: [ "sts:AssumeRole" ]
           Policies:
-          - PolicyName: "KMSDecrypterPolicy"
+          - PolicyName: "LogsAccessPolicy"
             PolicyDocument:
               Version: "2012-10-17"
               Statement:
@@ -51,6 +78,16 @@ resources:
                 - "logs:DeleteSubscriptionFilter"
                 Resource:
                   Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/{{__context.environment.name}}-{{__context.layer.name}}-{{__context.stage}}:*:*"
+          - PolicyName: "BatchAccessPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+              - Sid: "SubmitBatchJobs"
+                Effect: "Allow"
+                Action:
+                - "batch:SubmitJob"
+                Resource: "*"
+    {% endif %}
 
     ContainerRole:
         Type: "AWS::IAM::Role"

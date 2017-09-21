@@ -21,5 +21,10 @@ humilis-batch-job:
 
         - layer: job
           layer_type: batch-job
+          schedule_expression: "rate(1 day)"
           container_command: ls
+          job_queue:
+            $layer_output:
+                layer_name: batch
+                output_name: DefaultJobQueueArn
           docker_image: findhotel/ubuntu

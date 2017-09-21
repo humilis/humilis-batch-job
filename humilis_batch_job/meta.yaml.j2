@@ -4,6 +4,14 @@ meta:
         A complete, fully operational, AWS Batch computing system
 
     parameters:
+        job_queue:
+            description: The name or ARN where the job should be submitted
+            value:
+
+        schedule_expression:
+            description: The schedule expression for the Lambda trigger
+            value:
+
         container_command:
             description: The command to run in the container
             value:
