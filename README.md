@@ -2,7 +2,6 @@
 
 A [humilis][humilis] plug-in layer that deploys all the AWS Batch resources necessary to run a batch job on a given schedule.
 
-__IMPORTANT__: this plug-in is still WIP. Namely there is still not support for job schedules.
 
 [humilis]: https://github.com/humilis/humilis
 
