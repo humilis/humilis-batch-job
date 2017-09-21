@@ -1,0 +1,26 @@
+---
+outputs:
+    JobDefinitionArn:
+        Description:
+            The ARN of the job definition
+        Value: {Ref: JobDefinition}
+
+    LambdaFunctionArn:
+        Description:
+            The ARN of the Lambda function triggering the job on a schedule
+        Value:
+            "Fn::GetAtt":
+                - LambdaFunction
+                - Arn
+
+    LambdaExecutionRoleArn:
+        Description: The ARN of the Lambda execution role
+        Value:
+            "Fn::GetAtt":
+                - LambdaExecutionRole
+                - Arn
+
+    ContainerRoleArn:
+        Description: The ARN of the IAM role associated to the container
+        Value:
+            "Fn::GetAtt" : ["ContainerRole", "Arn"]

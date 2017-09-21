@@ -1,0 +1,46 @@
+---
+meta:
+    description:
+        A complete, fully operational, AWS Batch computing system
+
+    parameters:
+        container_command:
+            description: The command to run in the container
+            value:
+
+        submit_recurrence:
+            description: A cron expression with a submission schedule
+            value:
+
+        docker_image:
+            description: The Docker image
+            value:
+
+        vcpus:
+            description: The number of vCPUs reserved for the container
+            value: 2
+
+        memory:
+            description:
+                The hard limit of memory to present to the container, in MiB
+            value: 2000
+
+        privileged:
+            description:
+                When this parameter is true, the container is given elevated
+                privileges on the host container 
+            value: yes
+
+        iam_role_policies:
+            description:
+                A list of policies to associate to the role of the container
+            value: []
+
+        environment:
+            description:
+                A dictionary of environment variables to pass to the container
+            value: {}
+
+        attempts:
+            description: Maximum number of attempts to run the job
+            value: 1

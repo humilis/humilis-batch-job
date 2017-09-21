@@ -1,0 +1,117 @@
+---
+resources:
+    # The lambda function
+    LambdaFunction:
+      Type: "AWS::Lambda::Function"
+      Properties:
+        FunctionName: "{{__context.environment.name}}-{{__context.layer.name}}-{{__context.stage}}"
+        Code:
+            "ZipFile":
+                "Fn::Join":
+                    - ""
+                    -
+                        - "import json\n"
+                        - "def handler(event, context): \n"
+                        - "    return None\n"
+        Runtime: "python3.6"
+        MemorySize: "128"
+        Description: "Lambda trigger for Batch job {{description or __context.environment.name + "-" + __context.layer.name + "-" + __context.stage}}"
+        Handler: "handler"
+        Role:
+          "Fn::GetAtt":
+              - LambdaExecutionRole
+              - Arn
+
+    LambdaExecutionRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+          Path: {{ "/{}/".format(__context.environment.name) }}
+          AssumeRolePolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+            - Effect: "Allow"
+              Principal: {"Service": "lambda.amazonaws.com"}
+              Action: [ "sts:AssumeRole" ]
+          Policies:
+          - PolicyName: "KMSDecrypterPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+              - Sid: "ManageLambdaLogs"
+                Effect: "Allow"
+                Action:
+                - "logs:CreateLogGroup"
+                - "logs:CreateLogStream"
+                - "logs:PutLogEvents"
+                - "logs:PutRetentionPolicy"
+                - "logs:PutSubscriptionFilter"
+                - "logs:DescribeLogStreams"
+                - "logs:DeleteLogGroup"
+                - "logs:DeleteRetentionPolicy"
+                - "logs:DeleteSubscriptionFilter"
+                Resource:
+                  Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/{{__context.environment.name}}-{{__context.layer.name}}-{{__context.stage}}:*:*"
+
+    ContainerRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            AssumeRolePolicyDocument: 
+                Version: "2012-10-17"
+                Statement:
+                  -
+                    Effect: "Allow"
+                    Principal: 
+                      Service: 
+                        - "ecs-tasks.amazonaws.com"
+                    Action: 
+                      - "sts:AssumeRole"
+            Path: "/"
+            {% if iam_role_policies %}
+            Policies:
+                {% for policy in iam_role_policies %}
+                - {{ policy }}
+                {% endfor %}
+            {% endif %}
+
+    JobDefinition:
+        Type: "AWS::Batch::JobDefinition"
+        Properties:
+            Type: container
+            JobDefinitionName: {{__context.environment.name}}-{{__context.stage.lower()}}-{{__context.layer.name}}
+            {% if parameters %}
+            Parameters:
+                {% for pname, pvalue in parameters.items() %}
+                "{{pname}}": "{{pvalue}}"
+                {% endfor %}
+            {% endif %}
+            ContainerProperties:
+                {% if container_command %}
+                Command: [
+                    "{{container_command}}"
+                    {% if parameters %}
+                    ,
+                    {% for pname in parameters.keys() %}
+                    "--{{pname}}",
+                    "Ref::{{pname}}"
+                    {% if not loop.last %}
+                    ,
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                ]
+                # If there is no command then assume the container has an
+                # ENTRYPOINT and no parameters
+                {% endif %}
+                Image: {{docker_image}}
+                Vcpus: {{vcpus}}
+                Memory: {{memory}}
+                JobRoleArn: 
+                    "Fn::GetAtt" : ["ContainerRole", "Arn"]
+                {% if environment %}
+                Environment:
+                    {% for varname, varvalue in environment.items() %}
+                    "{{varname}}": "{{varvalue}}"
+                    {% endfor %}
+                {% endif %}
+            RetryStrategy:
+                Attempts: {{attempts}}

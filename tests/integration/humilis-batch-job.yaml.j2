@@ -1,0 +1,25 @@
+---
+humilis-batch-job:
+    description:
+        A dummy environment used for testing the humilis-batch plugin.
+
+    layers:
+        - layer: vpc
+          layer_type: vpc
+          description: VPC to test the humilis-batch plugin
+
+        - layer: batch
+          layer_type: batch
+          subnet_ids:
+            - $layer_output:
+                layer_name: vpc
+                output_name: PublicSubnet1
+          vpc_id:
+            $layer_output:
+                layer_name: vpc
+                output_name: VpcId
+
+        - layer: job
+          layer_type: batch-job
+          container_command: ls
+          docker_image: findhotel/ubuntu
