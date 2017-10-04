@@ -122,7 +122,9 @@ resources:
                 {% endfor %}
             {% endif %}
             ContainerProperties:
-                {% if container_command %}
+                {% if container_command|is_list %}
+                Command: {{container_command}}
+                {% elif container_commmand %}
                 Command: [
                     "{{container_command}}"
                     {% if parameters %}
