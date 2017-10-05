@@ -147,10 +147,14 @@ resources:
                 JobRoleArn: 
                     "Fn::GetAtt" : ["ContainerRole", "Arn"]
                 {% if environment %}
-                Environment:
+                Environment: [
                     {% for varname, varvalue in environment.items() %}
-                    "{{varname}}": "{{varvalue}}"
+                    {"Name": "{{varname}}", "Value": "{{varvalue}}"}
+                    {% if not loop.last %}
+                    ,
+                    {% endif %}
                     {% endfor %}
+                ]
                 {% endif %}
             RetryStrategy:
                 Attempts: {{attempts}}
