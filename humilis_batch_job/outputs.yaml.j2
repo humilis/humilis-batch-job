@@ -5,11 +5,24 @@ outputs:
             The ARN of the job definition
         Value: {Ref: JobDefinition}
 
-
     {% if not docker_image %}
     EcrRepositoryName:
         Description: the name of the ECR repository
         Value: {Ref: EcrRepository}
+
+    EcrReporitoryArn:
+        Description: the ARN of the ECR repository
+        Value:
+            "Fn::Join":
+                - ""
+                -
+                    - { "Ref" : "AWS::AccountId" }
+                    - ".dkr.ecr."
+                    - { "Ref" : "AWS::Region" }
+                    - "amazonaws.com/"
+                    - { "Ref" : "EcrRepository" }
+                    - ":"
+                    - {{__context.stage}}
     {% endif %}
 
     {% if schedule_expression %}
