@@ -151,7 +151,22 @@ resources:
                 # If there is no command then assume the container has an
                 # ENTRYPOINT and no parameters
                 {% endif %}
-                Image: {{docker_image}}
+                Image:
+                {% if docker_image %}
+                    {{docker_image}}
+                {% else %}
+                # Point to the ECR repo that is part of this stack
+                    "Fn::Join":
+                        - ""
+                        -
+                            - { "Ref" : "AWS::AccountId" }
+                            - ".dkr.ecr."
+                            - { "Ref" : "AWS::Region" }
+                            - "amazonaws.com/"
+                            - { "Ref" : "EcrRepository" }
+                            - ":"
+                            - {{__context.stage}}
+                {% endif %}
                 Vcpus: {{vcpus}}
                 Memory: {{memory}}
                 JobRoleArn: 
