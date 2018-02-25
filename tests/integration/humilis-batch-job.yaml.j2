@@ -19,7 +19,7 @@ humilis-batch-job:
                 layer_name: vpc
                 output_name: VpcId
 
-        - layer: job
+        - layer: job1
           layer_type: batch-job
           schedule_expression: "rate(1 day)"
           container_command: ls
@@ -28,3 +28,12 @@ humilis-batch-job:
                 layer_name: batch
                 output_name: DefaultJobQueueArn
           docker_image: findhotel/ubuntu
+
+        - layer: job2
+          layer_type: batch-job
+          schedule_expression: "rate(1 day)"
+          container_command: ls
+          job_queue:
+            $layer_output:
+                layer_name: batch
+                output_name: DefaultJobQueueArn

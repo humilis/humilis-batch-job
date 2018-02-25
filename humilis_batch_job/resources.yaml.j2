@@ -110,6 +110,16 @@ resources:
                 {% endfor %}
             {% endif %}
 
+
+    # If the docker_image parameter is not provided then we create an ECR
+    # repository to store the job container image.
+    {% if not docker_image %}
+    EcrRepository:
+        Type: "AWS::ECR::Repository"
+        Properties:
+            RepositoryName: {{ecr_repository_name}}
+    {% endif %}
+
     JobDefinition:
         Type: "AWS::Batch::JobDefinition"
         Properties:

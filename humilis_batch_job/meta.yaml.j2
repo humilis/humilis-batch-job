@@ -24,6 +24,11 @@ meta:
             description: The Docker image
             value:
 
+        ecr_repository_name:
+            description: Then name of the ECR repository that will be created to store the job container image. Not applicable if the docker_image parameter is used.
+            value:
+                {{__context.environment.name + '-' + __context.layer.name}}
+
         vcpus:
             description: The number of vCPUs reserved for the container
             value: 2

@@ -5,6 +5,13 @@ outputs:
             The ARN of the job definition
         Value: {Ref: JobDefinition}
 
+
+    {% if not docker_image %}
+    EcrRepositoryName:
+        Description: the name of the ECR repository
+        Value: {Ref: EcrRepository}
+    {% endif %}
+
     {% if schedule_expression %}
     LambdaFunctionArn:
         Description:
