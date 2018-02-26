@@ -162,7 +162,7 @@ resources:
                             - { "Ref" : "AWS::AccountId" }
                             - ".dkr.ecr."
                             - { "Ref" : "AWS::Region" }
-                            - "amazonaws.com/"
+                            - ".amazonaws.com/"
                             - { "Ref" : "EcrRepository" }
                             - ":"
                             - {{__context.stage}}
