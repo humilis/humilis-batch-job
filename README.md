@@ -1,5 +1,7 @@
 # Humilis plug-in to deploy an AWS Batch job
 
+[![PyPI](https://img.shields.io/pypi/v/humilis-batch-job.svg?style=flat)](https://pypi.python.org/pypi/humilis-batch-job)
+
 A [humilis][humilis] plug-in layer that deploys all the AWS Batch resources necessary to run a batch job on a given schedule.
 
 
