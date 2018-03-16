@@ -83,6 +83,7 @@ resources:
               - LambdaExecutionRole
               - Arn
 
+    {% if schedule_expression %}
     ScheduledRule:
       Type: "AWS::Events::Rule"
       Properties:
@@ -100,6 +101,7 @@ resources:
         Action: "lambda:InvokeFunction"
         Principal: "events.amazonaws.com"
         SourceArn: { "Fn::GetAtt": ["ScheduledRule", "Arn"] }
+    {% endif %}
 
     LambdaExecutionRole:
         Type: "AWS::IAM::Role"
