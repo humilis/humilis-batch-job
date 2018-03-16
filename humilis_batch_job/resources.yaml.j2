@@ -225,15 +225,19 @@ resources:
                 Memory: {{memory}}
                 JobRoleArn: 
                     "Fn::GetAtt" : ["ContainerRole", "Arn"]
-                {% if environment %}
                 Environment: [
+                    {"Name": "AWS_REGION", "Value": {"Fn::Sub": "${AWS::Region}"}}
+                    {% if environment %}
                     {% for varname, varvalue in environment.items() %}
+                    {% if loop.first %}
+                    ,
+                    {% endif %}
                     {"Name": "{{varname}}", "Value": "{{varvalue}}"}
                     {% if not loop.last %}
                     ,
                     {% endif %}
                     {% endfor %}
+                    {% endif %}
                 ]
-                {% endif %}
             RetryStrategy:
                 Attempts: {{attempts}}
