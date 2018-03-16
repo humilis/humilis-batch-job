@@ -1,6 +1,48 @@
 ---
 resources:
-    {% if schedule_expression %}
+    {% if s3_bucket_name or has_s3_trigger or s3_trigger_prefix or s3_trigger_suffix %}
+    S3LambdaPermission:
+      Type : "AWS::Lambda::Permission"
+      Properties:
+        Action: "lambda:InvokeFunction"
+        FunctionName:
+          "Fn::GetAtt":
+              - LambdaFunction
+              - Arn
+        Principal: s3.amazonaws.com
+        SourceAccount:
+            Ref: "AWS::AccountId"
+
+    Bucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        {% if s3_bucket_name %}
+        BucketName: {{s3_bucket_name}}
+        {% endif %}
+        {% if has_s3_trigger or s3_trigger_prefix or s3_trigger_suffix %}
+        NotificationConfiguration:
+          LambdaConfigurations:
+            - Event: "s3:ObjectCreated:*"
+              Function:
+                "Fn::GetAtt":
+                    - LambdaFunction
+                    - Arn
+              {% if s3_trigger_prefix or s3_trigger_suffix %}
+              Filter:
+                S3Key:
+                  Rules:
+                    {% if s3_trigger_prefix %}
+                    - Name: prefix
+                      Value: {{s3_trigger_prefix}}
+                    {% endif %}
+                    {% if s3_trigger_suffix %}
+                    - Name: suffix
+                      Value: {{s3_trigger_suffix}}
+                    {% endif %}
+              {% endif %}
+        {% endif %}
+    {% endif %}
+    {% if schedule_expression or has_s3_trigger or s3_trigger_prefixes or s3_trigger_suffixes %}
     LambdaFunction:
       Type: "AWS::Lambda::Function"
       Properties:
@@ -13,12 +55,14 @@ resources:
                         - "import json\n"
                         - "import boto3\n"
                         - "def handler(event, context): \n"
+                        - "    print('Received event: ' + json.dumps(event, indent=4))\n"
                         - "    client = boto3.client('batch')\n"
                         - "    return client.submit_job(\n"
                         - "        jobName='"
                         - "{{__context.environment.name}}-{{__context.layer.name}}-{{__context.stage}}-{{''|timestamp|int}}"
                         - "',\n"
                         - "        jobQueue='{{job_queue}}',\n"
+                        - "        containerOverrides={'environment': [{'name': 'EVENT', 'value': json.dumps(event)}]},\n"
                         - "        jobDefinition='"
                         - {Ref: JobDefinition}
                         - "')\n"

@@ -1,5 +1,12 @@
 ---
 outputs:
+    {% if s3_bucket_name or has_s3_trigger or s3_trigger_prefix %}
+    BucketName:
+        Description: The name of the S3 bucket associated to the batch job
+        Value:
+            Ref: Bucket
+    {% endif %}
+
     JobDefinitionArn:
         Description:
             The ARN of the job definition

@@ -28,11 +28,14 @@ humilis-batch-job:
                 layer_name: batch
                 output_name: DefaultJobQueueArn
           docker_image: findhotel/ubuntu
+          s3_trigger_prefix: 'p1/'
+          s3_trigger_suffix: '.zip'
 
         - layer: job2
           layer_type: batch-job
           schedule_expression: "rate(1 day)"
           container_command: ls
+          docker_image: findhotel/ubuntu
           job_queue:
             $layer_output:
                 layer_name: batch

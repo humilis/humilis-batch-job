@@ -4,6 +4,22 @@ meta:
         A complete, fully operational, AWS Batch computing system
 
     parameters:
+        has_s3_trigger:
+            description: Should a S3 bucket be created as well?
+            value: no
+
+        s3_bucket_name:
+            description: The name of the input bucket
+            value:
+
+        s3_trigger_prefix:
+            description: The S3 prefix to listen on
+            value:
+
+        s3_trigger_suffix:
+            description: The S3 suffix to listen on
+            value:
+
         job_queue:
             description: The name or ARN where the job should be submitted
             value:
@@ -25,9 +41,9 @@ meta:
             value:
 
         ecr_repository_name:
-            description: Then name of the ECR repository that will be created to store the job container image. Not applicable if the docker_image parameter is used.
+            description: The name of the ECR repository that will be created to store the job container image. Not applicable if the docker_image parameter is used.
             value:
-                {{__context.environment.name + '-' + __context.layer.name}}
+                {{__context.environment.name}}-{{__context.layer.name}}-{{__context.stage}}
 
         vcpus:
             description: The number of vCPUs reserved for the container
