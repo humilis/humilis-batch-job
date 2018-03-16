@@ -42,7 +42,7 @@ resources:
               {% endif %}
         {% endif %}
     {% endif %}
-    {% if schedule_expression or has_s3_trigger or s3_trigger_prefixes or s3_trigger_suffixes %}
+    {% if schedule_expression or has_s3_trigger or s3_trigger_prefix or s3_trigger_suffix %}
     LambdaFunction:
       Type: "AWS::Lambda::Function"
       Properties:
