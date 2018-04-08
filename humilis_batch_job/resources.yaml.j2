@@ -244,3 +244,8 @@ resources:
                 ]
             RetryStrategy:
                 Attempts: {{attempts}}
+
+            {% if timeout %}
+            Timeout:
+                AttemptDurationSeconds: {{timeout}}
+            {% endif %}
