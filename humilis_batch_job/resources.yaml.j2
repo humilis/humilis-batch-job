@@ -1,6 +1,7 @@
 ---
 resources:
     {% if s3_bucket_name or has_s3_trigger or s3_trigger_prefix or s3_trigger_suffix %}
+    {% if schedule_expression %}
     S3LambdaPermission:
       Type : "AWS::Lambda::Permission"
       Properties:
@@ -12,6 +13,7 @@ resources:
         Principal: s3.amazonaws.com
         SourceAccount:
             Ref: "AWS::AccountId"
+    {% endif %}
 
     Bucket:
       Type: "AWS::S3::Bucket"
