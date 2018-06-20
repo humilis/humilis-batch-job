@@ -17,34 +17,12 @@ resources:
 
     Bucket:
       Type: "AWS::S3::Bucket"
+      {% if s3_bucket_name %}
       Properties:
-        {% if s3_bucket_name %}
         BucketName: {{s3_bucket_name}}
-        {% endif %}
-        {% if has_s3_trigger or s3_trigger_prefix or s3_trigger_suffix %}
-        NotificationConfiguration:
-          LambdaConfigurations:
-            - Event: "s3:ObjectCreated:*"
-              Function:
-                "Fn::GetAtt":
-                    - LambdaFunction
-                    - Arn
-              {% if s3_trigger_prefix or s3_trigger_suffix %}
-              Filter:
-                S3Key:
-                  Rules:
-                    {% if s3_trigger_prefix %}
-                    - Name: prefix
-                      Value: {{s3_trigger_prefix}}
-                    {% endif %}
-                    {% if s3_trigger_suffix %}
-                    - Name: suffix
-                      Value: {{s3_trigger_suffix}}
-                    {% endif %}
-              {% endif %}
-        {% endif %}
+      {% endif %}
     {% endif %}
-    {% if schedule_expression or has_s3_trigger or s3_trigger_prefix or s3_trigger_suffix %}
+
     LambdaFunction:
       Type: "AWS::Lambda::Function"
       Properties:
@@ -99,13 +77,23 @@ resources:
             - "Arn": { "Fn::GetAtt": ["LambdaFunction", "Arn"] }
               "Id": "BatchJobTrigger"
 
-    PermissionForEventsToInvokeLambda:
+    PermissionForCwEventsToInvokeLambda:
       Type: "AWS::Lambda::Permission"
       Properties:
         FunctionName: { "Ref": "LambdaFunction" }
         Action: "lambda:InvokeFunction"
         Principal: "events.amazonaws.com"
         SourceArn: { "Fn::GetAtt": ["ScheduledRule", "Arn"] }
+    {% endif %}
+
+    {% if has_s3_trigger or s3_trigger_prefix or s3_trigger_suffix %}
+    PermissionForS3EventsToInvokeLambda:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        FunctionName: { "Ref": "LambdaFunction" }
+        Action: "lambda:InvokeFunction"
+        Principal: "events.amazonaws.com"
+        SourceArn: { "Fn::GetAtt": ["Bucket", "Arn"] }
     {% endif %}
 
     LambdaExecutionRole:
@@ -146,7 +134,6 @@ resources:
                 Action:
                 - "batch:SubmitJob"
                 Resource: "*"
-    {% endif %}
 
     ContainerRole:
         Type: "AWS::IAM::Role"
