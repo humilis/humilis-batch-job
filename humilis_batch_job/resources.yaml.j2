@@ -171,6 +171,9 @@ resources:
         Properties:
             Type: container
             JobDefinitionName: {{__context.environment.name}}-{{__context.stage.lower()}}-{{__context.layer.name}}
+            {% if timeout %}
+            Timeout: {{timeout}}
+            {% endif %}
             {% if parameters %}
             Parameters:
                 {% for pname, pvalue in parameters.items() %}
